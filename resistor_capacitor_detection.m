@@ -2,9 +2,11 @@ clc
 
 clear
 
-I = imread('capacitor1.png');
+I = imread('res_proj.png');
 
 I = rgb2gray(I);
+
+I = imresize(I, 5);
 
 BW = edge(I,'canny');
 
@@ -26,7 +28,7 @@ hold on
 
 colormap(hot)
 
-P = houghpeaks(H,9,'threshold',ceil(0.3*max(H(:))));
+P = houghpeaks(H,5,'threshold',ceil(0.5*max(H(:))));
 
 x = theta(P(:,2));
 
@@ -34,13 +36,14 @@ y = rho(P(:,1));
 
 plot(x,y,'s','color','blue');
 
-lines = houghlines(BW,theta,rho,P,'FillGap',8,'MinLength',40);
+lines = houghlines(BW,theta,rho,P,'FillGap',5,'MinLength',20);
 
 figure, imshow(I), hold on
 
 max_len = 0;
 
 
+slopes = zeros(1,length(lines));
 for k = 1:length(lines)
 
   xy = [lines(k).point1; lines(k).point2];
@@ -80,7 +83,7 @@ for i = 1:length(slopes)
         if (i~=j && slopes(i) == slopes(j))
             counter = counter + 1;
         end
-        if (i~=j && slopes(i) == -slopes(j))
+        if (i~=j && (abs(slopes(i))-abs(slopes(j))<.2))
             inverseCounter = 1;
         end
         
@@ -90,9 +93,9 @@ for i = 1:length(slopes)
     end
 end
 
-
+infCounter = zeros(1,length(lines));
 for j = 1:length(slopes)
-    if (slopes(j) == Inf || slopes(j) == 0)
+    if (slopes(j) == Inf || (slopes(j) <0.1 && slopes(j)>-.1) || slopes(j)> 8.0 || slopes (j)<-8.0)
         infCounter(j) = 1;
     else
         infCounter(j) = 0;
